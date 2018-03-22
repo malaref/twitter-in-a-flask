@@ -6,11 +6,28 @@ from app import app, db, twitter_api, NUMBER_OF_POSTS
 import models
 
 
+def paginate(query):
+    # TODO implement actual pagination with parameters
+    items = []
+    for item in query.paginate().items:
+        items.append(dict(item))
+    return jsonify(items)
+
+
+@app.route('/users/', methods=['GET'])
+def all_users():
+    try:
+        return paginate(models.User.query)
+    except Exception as e:
+        print >> sys.stderr, e
+        abort(404)
+
+
 @app.route('/users/<twitter_id>/', methods=['GET'])
 def user_data(twitter_id):
     try:
         user = models.User.query.get(twitter_id)
-        if not request.args.get('local'):
+        if not request.args.get('local') or request.args.get('local') != 'true':
             updated_user_dict = twitter_api.GetUser(user_id=twitter_id).AsDict()
             if user:
                 user.update(updated_user_dict)
@@ -31,7 +48,7 @@ def user_posts(twitter_id):
         if not user:
             user = models.User(twitter_api.GetUser(user_id=twitter_id).AsDict())
             db.session.add(user)
-        if not request.args.get('local'):
+        if not request.args.get('local') or request.args.get('local') != 'true':
             statuses = twitter_api.GetUserTimeline(user_id=twitter_id, count=NUMBER_OF_POSTS)
             for status in statuses:
                 new_status_dict = status.AsDict()
@@ -44,10 +61,7 @@ def user_posts(twitter_id):
                     db.session.add(new_status)
                 # TODO delete extra statuses
         db.session.commit()
-        statuses = []
-        for status in user.statuses:
-            statuses.append(dict(status))
-        return jsonify(statuses)
+        return paginate(models.Status.query.with_parent(user))
     except Exception as e:
         print >> sys.stderr, e
         abort(404)

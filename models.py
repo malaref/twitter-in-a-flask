@@ -1,7 +1,21 @@
 from app import db
 
 
-class User(db.Model):
+class DynamicModelMixin(object):
+    def __init__(self, user_dict):
+        self.update(user_dict)
+
+    def __iter__(self):
+        for column in self.__table__.columns:
+            yield column.name, getattr(self, column.name)
+
+    def update(self, data_dict):
+        for key in data_dict:
+            if hasattr(self, key):
+                setattr(self, key, data_dict[key])
+
+
+class User(DynamicModelMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     created_at = db.Column(db.DateTime)
     url = db.Column(db.String())
@@ -13,15 +27,13 @@ class User(db.Model):
     friends_count = db.Column(db.Integer)
     listed_count = db.Column(db.Integer)
     statuses_count = db.Column(db.Integer)
+    statuses = db.relationship('Status')
 
-    def update(self, user_dict):
-        for key in user_dict:
-            if hasattr(User, key):
-                setattr(self, key, user_dict[key])
 
-    def __init__(self, user_dict):
-        self.update(user_dict)
-
-    def __iter__(self):
-        for column in self.__table__.columns:
-            yield column.name, getattr(self, column.name)
+class Status(DynamicModelMixin, db.Model):
+    id = db.Column(db.BigInteger, primary_key=True)
+    created_at = db.Column(db.DateTime)
+    text = db.Column(db.String())
+    favorite_count = db.Column(db.Integer)
+    retweet_count = db.Column(db.Integer)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))

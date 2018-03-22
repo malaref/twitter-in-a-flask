@@ -1,3 +1,10 @@
+"""
+The models module of the application.
+Contains the declaration of the models
+used in the application using the
+declarative SQLAlchemy ORM.
+"""
+
 from app import db
 
 

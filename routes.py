@@ -1,3 +1,9 @@
+"""
+The routes module of the application.
+Contains the endpoints exposed to the
+consumer of the RESTful API.
+"""
+
 import sys
 
 from flask import request, jsonify, abort

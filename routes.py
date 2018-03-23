@@ -22,6 +22,7 @@ def paginate(query):
 
 @app.route('/users/', methods=['GET'])
 def all_users():
+    """An endpoint that returns a list of saved users in the database."""
     try:
         return paginate(models.User.query)
     except Exception as e:
@@ -31,6 +32,8 @@ def all_users():
 
 @app.route('/users/<twitter_id>/', methods=['GET'])
 def user_data(twitter_id):
+    """An endpoint that scraps user data and saves them to the database, updates it if needed.
+    If query param '?local=true' was provided, it just returns saved data from the database."""
     try:
         user = models.User.query.get(twitter_id)
         if not request.args.get('local') or request.args.get('local') != 'true':
@@ -49,6 +52,10 @@ def user_data(twitter_id):
 
 @app.route('/users/<twitter_id>/posts/', methods=['GET'])
 def user_posts(twitter_id):
+    """An endpoint that fetches the last 25 tweets of the user and puts them into Database.
+    If called a second time it compares tweets in the database with the onse from Twitter,
+    updates with more recent posts if needed.
+    If query param '?local=true' was provided, it just returns saved data from the database."""
     try:
         user = models.User.query.get(twitter_id)
         if not user:

@@ -9,6 +9,8 @@ from app import db
 
 
 class DynamicModelMixin(object):
+    """A made-up helpful mixin to add common functionality to other modules."""
+
     def __init__(self, user_dict):
         self.update(user_dict)
 
@@ -23,6 +25,7 @@ class DynamicModelMixin(object):
 
 
 class User(DynamicModelMixin, db.Model):
+    """A class capturing a subset of Tweeter's 'User' object."""
     id = db.Column(db.Integer, primary_key=True)
     created_at = db.Column(db.DateTime)
     url = db.Column(db.String())
@@ -38,6 +41,7 @@ class User(DynamicModelMixin, db.Model):
 
 
 class Status(DynamicModelMixin, db.Model):
+    """A class capturing a subset of Tweeter's 'Tweet' object."""
     id = db.Column(db.BigInteger, primary_key=True)
     created_at = db.Column(db.DateTime)
     text = db.Column(db.String())

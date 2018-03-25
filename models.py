@@ -5,7 +5,7 @@ used in the application using the
 declarative SQLAlchemy ORM.
 """
 
-from app import db
+from main import db
 
 
 class DynamicModelMixin(object):
@@ -26,7 +26,7 @@ class DynamicModelMixin(object):
 
 class User(DynamicModelMixin, db.Model):
     """A class capturing a subset of Tweeter's 'User' object."""
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.BigInteger, primary_key=True)
     created_at = db.Column(db.DateTime)
     url = db.Column(db.String())
     screen_name = db.Column(db.String())
@@ -47,4 +47,4 @@ class Status(DynamicModelMixin, db.Model):
     text = db.Column(db.String())
     favorite_count = db.Column(db.Integer)
     retweet_count = db.Column(db.Integer)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    user_id = db.Column(db.BigInteger, db.ForeignKey('user.id'))

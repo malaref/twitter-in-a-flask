@@ -8,7 +8,7 @@ import sys
 
 from flask import request, jsonify, abort
 
-from app import app, db, twitter_api, NUMBER_OF_POSTS
+from main import app, db, twitter_api, NUMBER_OF_POSTS
 import models
 
 
@@ -46,6 +46,7 @@ def user_data(twitter_id):
             db.session.commit()
         return jsonify(dict(user))
     except Exception as e:
+        db.session.close()
         print >> sys.stderr, e
         abort(404)
 
@@ -53,15 +54,15 @@ def user_data(twitter_id):
 @app.route('/users/<twitter_id>/posts/', methods=['GET'])
 def user_posts(twitter_id):
     """An endpoint that fetches the last 25 tweets of the user and puts them into Database.
-    If called a second time it compares tweets in the database with the onse from Twitter,
+    If called a second time it compares tweets in the database with the ones from Twitter,
     updates with more recent posts if needed.
     If query param '?local=true' was provided, it just returns saved data from the database."""
     try:
         user = models.User.query.get(twitter_id)
-        if not user:
-            user = models.User(twitter_api.GetUser(user_id=twitter_id).AsDict())
-            db.session.add(user)
         if not request.args.get('local') or request.args.get('local') != 'true':
+            if not user:
+                user = models.User(twitter_api.GetUser(user_id=twitter_id).AsDict())
+                db.session.add(user)
             statuses = twitter_api.GetUserTimeline(user_id=twitter_id, count=NUMBER_OF_POSTS)
             for status in statuses:
                 new_status_dict = status.AsDict()
@@ -73,8 +74,12 @@ def user_posts(twitter_id):
                     new_status = models.Status(new_status_dict)
                     db.session.add(new_status)
                 # TODO delete extra statuses
-        db.session.commit()
-        return paginate(models.Status.query.with_parent(user))
+            db.session.commit()
+        statuses = models.Status.query.with_parent(user)
+        if not statuses.first():
+            abort(404)
+        return paginate(statuses)
     except Exception as e:
+        db.session.close()
         print >> sys.stderr, e
         abort(404)

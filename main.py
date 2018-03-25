@@ -1,5 +1,5 @@
 """
-The root module of the application.
+The main module of the application.
 Contains the essential initializations;
 namely, the Flask app, SQLAlchemy ORM
 and the Twitter API.
